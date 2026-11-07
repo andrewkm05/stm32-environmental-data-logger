@@ -1,0 +1,10 @@
+# Build outputs
+Debug/
+Release/
+
+# Local IDE settings
+.settings/
+.metadata/
+
+# macOS
+.DS_Store
