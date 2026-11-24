@@ -8,3 +8,4 @@ Release/
 
 # macOS
 .DS_Store
+STM32_Environmental_Data_Logger Debug.launch
