@@ -14,6 +14,19 @@
 #define CLOCK_HSI_HZ    16000000U
 #define CLOCK_HSE_HZ    8000000U
 
+// AHB prescaler decoding table
+static const uint16_t ahb_prescaler[16]=
+{
+		1U, 1U, 1U, 1U, 1U, 1U, 1U, 1U,
+		2U, 4U, 8U, 16U, 64U, 128U, 256U, 512U
+};
+
+// APB prescaler decoding table
+static const uint8_t apb_prescaler[8]=
+{
+		1U, 1U, 1U, 1U, 2U, 4U, 8U, 16U
+};
+
 
 /**
  * @brief		Returns the current nominal system clock frequency
@@ -76,3 +89,70 @@ uint32_t Clock_GetSYSCLK(void)
 	}
 
 }
+
+
+
+/**
+ * @brief	Returns the current nominal AHB clock frequency
+ * @return	AHB clock frequency in Hz, or 0 if undetermined
+ */
+uint32_t Clock_GetHCLK(void)
+{
+	// Obtain the current system clock frequency
+	uint32_t sysclk = Clock_GetSYSCLK();
+
+	// Extract the AHB prescaler field
+	uint32_t hpre = (RCC->CFGR >> 4) &  0xFU;
+
+	// Decode the actual AHB division factor
+	uint32_t divisior = ahb_prescaler[hpre];
+
+	// Calculate the AHB clock frequency
+	return (sysclk / divisior);
+}
+
+
+/**
+ * @brief	Returns the current nominal APB1 or APB2 clock frequency
+ * @return	APB1 or APB2 clock frequency in Hz, or 0 if undetermined
+ */
+uint32_t Clock_GetPCLK1(void)
+{
+	// Obtain the current AHB clock frequency
+	uint32_t hclk = Clock_GetHCLK();
+
+	// Extract the APB1 prescaler field
+	uint32_t ppre1 = (RCC->CFGR >> 10) & 0xFU;
+
+	// Decode the actual APB1 division factor
+	uint32_t divisor1 = apb_prescaler[ppre1];
+
+	// Calculate the APB1 clock frequency
+	return (hclk / divisor1);
+}
+
+
+uint32_t Clock_GetPCLK2(void)
+{
+	// Obtain the current AHB clock frequency
+	uint32_t hclk = Clock_GetHCLK();
+
+	// Extract the APB1 prescaler field
+	uint32_t ppre2 = (RCC->CFGR >> 13) & 0xFU;
+
+	// Decode the actual APB1 division factor
+	uint32_t divisor2 = apb_prescaler[ppre2];
+
+	// Calculate the APB1 clock frequency
+	return (hclk / divisor2);
+}
+
+
+
+
+
+
+
+
+
+
