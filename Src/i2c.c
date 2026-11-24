@@ -1,11 +1,4 @@
 /*
- * i2c.c
- *
- *  Created on: 23 Nov 2026
- *      Author: andreaskoumi
- */
-
-/*
  * @file	i2c.h
  * @brief	Bare metal I2C1 driver for the STM32F446RE
  *
