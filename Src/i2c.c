@@ -9,6 +9,7 @@
 #include "stm32f4xx.h"
 
 #define I2C_SCL_HZ	100000U
+#define I2C_TIMEOUT	100000U
 
 /**
  * @brief	Initializes the I2C peripheral in standard mode
@@ -92,3 +93,143 @@ void I2C_init(uint32_t pclk1_hz)
 	// Enable I2C1 peripheral
 	I2C1->CR1 |= (1U<<0);
 }
+
+
+/**
+ * @brief	Checks the I2C peripheral for communication errors
+ * @return	Returns error status or I2C_OK
+ */
+static I2C_Status I2C_check_errors(void)
+{
+	// Capture the current status register
+	uint32_t sr1 = I2C1->SR1;
+
+	// Check for arbitration loss
+	if(sr1 & (1U<<9))
+	{
+		return I2C_ARBITRATION_ERROR;
+	}
+
+	// Check for bus error
+	if(sr1 & (1U<<8))
+	{
+		return I2C_BUS_ERROR;
+	}
+
+	// Check for  failure
+	if(sr1 & (1U<<10))
+	{
+		return I2C_NACK;
+	}
+
+
+	return I2C_OK;
+
+}
+
+
+/**
+ * @brief	Wait until I2C bus becomes available
+ * @return	Status of the bus availability check
+ */
+static I2C_Status I2C_wait_bus_free(void)
+{
+
+	// Initialize timeout counter
+	uint32_t timeout = I2C_TIMEOUT;
+
+	// Wait until bus is released
+	while(I2C1->SR2 & (1U<<1))
+	{
+		if(timeout == 0U){
+			return I2C_TIMEOUT_ERROR;
+		}
+		timeout--;
+	}
+
+	return I2C_OK;
+}
+
+
+/**
+ * @brief	Generates a START or Repeated START condition
+ * @return	Status of the START operation
+ */
+static I2C_Status I2C_start(void)
+{
+	// Initialize timeout counter
+	uint32_t timeout = I2C_TIMEOUT;
+
+	// Request START generation
+	I2C1->CR1 |= (1U<<8);
+
+	// Wait until the START condition is generated
+	while(1)
+	{
+		// Check status
+		I2C_Status status = I2C_check_errors();
+
+		if(status != I2C_OK)
+		{
+			return status;
+		}
+
+		// Check whether START has been generated
+		if(I2C1->SR1 & (1U<<0))
+		{
+			return I2C_OK;
+		}
+
+		// Check for Timeout
+		if(timeout == 0U)
+		{
+			return I2C_TIMEOUT_ERROR;
+		}
+
+		timeout--;
+
+	}
+}
+
+
+/**
+ * @brief	Request the generation of a STOP condition
+ */
+static void I2C_stop()
+{
+	// Request a STOP generation
+	I2C1->CR1 |= (1U<<9);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
